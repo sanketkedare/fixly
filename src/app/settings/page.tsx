@@ -4,12 +4,29 @@ import { useState } from "react";
 import { HiBell, HiLockClosed, HiGlobeAlt, HiMoon, HiChevronRight, HiOutlineExternalLink } from "react-icons/hi";
 import { cn } from "@/lib/utils";
 import Navbar from "@/components/layout/Navbar";
+import { IconType } from "react-icons";
+
+interface SettingItem {
+  label: string;
+  icon: IconType;
+  color: string;
+  bg: string;
+  type?: "toggle";
+  state?: boolean;
+  setState?: (val: boolean) => void;
+  value?: string | null;
+}
+
+interface SettingSection {
+  title: string;
+  items: SettingItem[];
+}
 
 export default function SettingsPage() {
   const [notifications, setNotifications] = useState(true);
   const [darkMode, setDarkMode] = useState(false);
 
-  const sections = [
+  const sections: SettingSection[] = [
     {
       title: "General",
       items: [

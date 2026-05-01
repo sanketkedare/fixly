@@ -3,6 +3,7 @@
 import { HiUser, HiCamera, HiPencil, HiCheckCircle, HiChevronRight, HiOutlineShieldCheck, HiCreditCard, HiUsers } from "react-icons/hi";
 import { motion } from "framer-motion";
 import Navbar from "@/components/layout/Navbar";
+import { cn } from "@/lib/utils";
 
 export default function ProfilePage() {
   const menuItems = [
