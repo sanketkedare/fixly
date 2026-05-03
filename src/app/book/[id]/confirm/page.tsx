@@ -1,99 +1,176 @@
 "use client";
 
-import { useRouter, useSearchParams } from "next/navigation";
-import { HiArrowLeft, HiCheckCircle } from "react-icons/hi";
-import { useState } from "react";
-import { cn } from "@/lib/utils";
+import { useEffect, useState } from "react";
+import { useRouter, useParams } from "next/navigation";
+import { HiArrowLeft, HiCheckCircle, HiCreditCard, HiCash, HiPhone } from "react-icons/hi";
+import { getServiceById } from "@/data/services";
+import Navbar from "@/components/layout/Navbar";
+import { motion } from "framer-motion";
+
+const CONVENIENCE_FEE = 30;
+
+const PAYMENT_METHODS = [
+  { id: "upi",  label: "UPI",              icon: HiPhone,       sub: "GPay, PhonePe, Paytm" },
+  { id: "card", label: "Card",             icon: HiCreditCard,  sub: "Credit / Debit Card" },
+  { id: "cash", label: "Cash on Service",  icon: HiCash,        sub: "Pay after the job is done" },
+];
+
+interface BookingData {
+  serviceId: string; serviceName: string; date: string;
+  time: string; address: string; price: number;
+}
 
 export default function ConfirmBookingPage() {
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const date = searchParams.get("date") || "25 May 2024";
-  const time = searchParams.get("time") || "10:00 AM - 12:00 PM";
-  
-  const [paymentMethod, setPaymentMethod] = useState("upi");
+  const { id }    = useParams<{ id: string }>();
+  const router    = useRouter();
+  const service   = getServiceById(id);
+
+  const [booking, setBooking]   = useState<BookingData | null>(null);
+  const [payment, setPayment]   = useState("upi");
+  const [confirmed, setConfirmed] = useState(false);
+  const [loading, setLoading]   = useState(false);
+
+  useEffect(() => {
+    const raw = sessionStorage.getItem("fixly_booking");
+    if (raw) setBooking(JSON.parse(raw));
+  }, []);
+
+  if (!service || !booking) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-5xl mb-4">⚠️</p>
+          <p className="font-black text-gray-900">No booking data found.</p>
+          <button onClick={() => router.push("/services")} className="mt-4 bg-blue-600 text-white px-6 py-3 rounded-2xl font-black">
+            Browse Services
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  const total = booking.price + CONVENIENCE_FEE;
+
+  const handleConfirm = async () => {
+    setLoading(true);
+    await new Promise((r) => setTimeout(r, 1200)); // simulate network
+    sessionStorage.removeItem("fixly_booking");
+    setConfirmed(true);
+    setLoading(false);
+    setTimeout(() => router.push("/bookings"), 2200);
+  };
+
+  // ── Success screen ──────────────────────────────────────────────────────────
+  if (confirmed) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-white">
+        <motion.div
+          initial={{ scale: 0.8, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          className="text-center px-8"
+        >
+          <motion.div
+            initial={{ scale: 0 }}
+            animate={{ scale: 1 }}
+            transition={{ type: "spring", stiffness: 200, delay: 0.1 }}
+            className="w-24 h-24 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-6"
+          >
+            <HiCheckCircle size={52} className="text-emerald-500" />
+          </motion.div>
+          <h2 className="text-2xl font-black text-gray-900 mb-2">Booking Confirmed!</h2>
+          <p className="text-gray-400 font-medium">Redirecting to your bookings…</p>
+        </motion.div>
+      </div>
+    );
+  }
 
   return (
-    <div className="flex flex-col min-h-screen">
-      <div className="p-6 border-b border-gray-100 flex items-center gap-4">
-        <button onClick={() => router.back()} className="text-gray-900">
-          <HiArrowLeft size={24} />
-        </button>
-        <h1 className="text-xl font-bold">Confirm Booking</h1>
-      </div>
+    <div className="min-h-screen bg-gray-50/40 pb-36 lg:pb-12">
+      <div className="max-w-xl mx-auto px-4 lg:px-0 py-6">
 
-      <div className="p-6 flex flex-col gap-6">
-        {/* Booking Info */}
-        <div className="flex items-center gap-4 bg-gray-50 p-4 rounded-2xl border border-gray-100">
-           <div className="w-16 h-16 bg-white rounded-xl flex items-center justify-center text-3xl">⚡</div>
-           <div>
-              <h3 className="font-bold">Electrician</h3>
-              <p className="text-xs text-gray-500 font-medium">{date} • {time}</p>
-              <p className="text-xs text-gray-400 mt-1">Sector 21, Noida, Uttar Pradesh</p>
-           </div>
+        {/* Header */}
+        <div className="flex items-center gap-4 mb-8">
+          <button onClick={() => router.back()} className="w-10 h-10 flex items-center justify-center bg-white border border-gray-100 rounded-2xl shadow-sm hover:bg-gray-50 transition-all">
+            <HiArrowLeft size={20} className="text-gray-700" />
+          </button>
+          <h1 className="text-xl font-black text-gray-900">Confirm Booking</h1>
         </div>
 
-        {/* Price Details */}
-        <div>
-           <h2 className="font-bold text-gray-900 mb-4">Price Details</h2>
-           <div className="bg-gray-50 p-4 rounded-2xl border border-gray-100 flex flex-col gap-3">
-              <div className="flex justify-between text-sm">
-                <span className="text-gray-500">Service Charge</span>
-                <span className="font-bold text-gray-900">₹299</span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-gray-500">Convenience Fee</span>
-                <span className="font-bold text-gray-900">₹30</span>
-              </div>
-              <div className="h-px bg-gray-200 my-1" />
-              <div className="flex justify-between text-base">
-                <span className="font-bold text-gray-900">Total Payable</span>
-                <span className="font-bold text-blue-600">₹329</span>
-              </div>
-           </div>
+        {/* Service Summary */}
+        <div className="bg-white border border-gray-100 rounded-3xl p-4 mb-4 flex items-center gap-4 shadow-sm">
+          <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${service.gradient} flex items-center justify-center text-3xl shadow-lg shrink-0`}>
+            {service.emoji}
+          </div>
+          <div>
+            <p className="font-black text-gray-900">{service.name}</p>
+            <p className="text-xs text-gray-400 font-medium">{booking.date} • {booking.time}</p>
+            <p className="text-xs text-gray-400 font-medium">{booking.address}</p>
+          </div>
+        </div>
+
+        {/* Price breakdown */}
+        <div className="bg-white border border-gray-100 rounded-3xl p-5 mb-4 shadow-sm">
+          <h3 className="font-black text-gray-900 mb-4">Price Details</h3>
+          <div className="flex flex-col gap-3">
+            <div className="flex justify-between">
+              <span className="text-sm font-medium text-gray-600">Service Charge</span>
+              <span className="text-sm font-black text-gray-900">₹{booking.price}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-sm font-medium text-gray-600">Convenience Fee</span>
+              <span className="text-sm font-black text-gray-900">₹{CONVENIENCE_FEE}</span>
+            </div>
+            <div className="border-t border-gray-100 pt-3 flex justify-between">
+              <span className="text-base font-black text-gray-900">Total Payable</span>
+              <span className="text-base font-black text-blue-600">₹{total}</span>
+            </div>
+          </div>
         </div>
 
         {/* Payment Method */}
-        <div>
-           <h2 className="font-bold text-gray-900 mb-4">Payment Method</h2>
-           <div className="flex flex-col gap-3">
-              {[
-                { id: "upi", label: "UPI", icon: "📱" },
-                { id: "card", label: "Card", icon: "💳" },
-                { id: "cash", label: "Cash on Service", icon: "💵" }
-              ].map((method) => (
-                <button 
-                  key={method.id}
-                  onClick={() => setPaymentMethod(method.id)}
-                  className={cn(
-                    "flex items-center justify-between p-4 rounded-2xl border transition-all",
-                    paymentMethod === method.id ? "bg-blue-50 border-blue-600 ring-1 ring-blue-600" : "bg-white border-gray-100"
-                  )}
+        <div className="bg-white border border-gray-100 rounded-3xl p-5 shadow-sm">
+          <h3 className="font-black text-gray-900 mb-4">Payment Method</h3>
+          <div className="flex flex-col gap-3">
+            {PAYMENT_METHODS.map((m) => {
+              const Icon = m.icon;
+              const isSelected = payment === m.id;
+              return (
+                <button
+                  key={m.id}
+                  onClick={() => setPayment(m.id)}
+                  className={`flex items-center gap-4 p-4 rounded-2xl border transition-all ${
+                    isSelected ? "border-blue-500 bg-blue-50" : "border-gray-100 hover:border-blue-200"
+                  }`}
                 >
-                  <div className="flex items-center gap-3">
-                    <span className="text-xl">{method.icon}</span>
-                    <span className="font-bold text-gray-900 text-sm">{method.label}</span>
+                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${isSelected ? "bg-blue-600 text-white" : "bg-gray-100 text-gray-500"}`}>
+                    <Icon size={20} />
                   </div>
-                  <div className={cn(
-                    "w-5 h-5 rounded-full border-2 flex items-center justify-center",
-                    paymentMethod === method.id ? "border-blue-600" : "border-gray-200"
-                  )}>
-                    {paymentMethod === method.id && <div className="w-2.5 h-2.5 bg-blue-600 rounded-full" />}
+                  <div className="flex-1 text-left">
+                    <p className="font-black text-gray-900 text-sm">{m.label}</p>
+                    <p className="text-xs text-gray-400 font-medium">{m.sub}</p>
+                  </div>
+                  <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${isSelected ? "border-blue-600 bg-blue-600" : "border-gray-200"}`}>
+                    {isSelected && <div className="w-2 h-2 bg-white rounded-full" />}
                   </div>
                 </button>
-              ))}
-           </div>
+              );
+            })}
+          </div>
         </div>
       </div>
 
-      <div className="p-6 mt-auto">
-        <button 
-          onClick={() => router.push("/bookings")}
-          className="w-full bg-blue-600 text-white font-bold py-4 rounded-2xl text-center hover:bg-blue-700 transition-colors shadow-lg shadow-blue-600/20"
+      {/* Sticky CTA */}
+      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 px-4 pt-3 pb-6 z-30 lg:relative lg:border-none lg:bg-transparent lg:mt-6 lg:max-w-xl lg:mx-auto lg:px-0">
+        <button
+          onClick={handleConfirm}
+          disabled={loading}
+          className="w-full bg-blue-600 text-white py-4 rounded-2xl font-black text-base hover:bg-blue-700 transition-all shadow-xl shadow-blue-600/20 disabled:opacity-70"
         >
-          Confirm & Pay ₹329
+          {loading ? "Processing…" : `Confirm & Pay ₹${total}`}
         </button>
       </div>
+
+      <Navbar />
     </div>
   );
 }

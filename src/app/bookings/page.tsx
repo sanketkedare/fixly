@@ -1,121 +1,102 @@
 "use client";
 
 import { useState } from "react";
-import { HiArrowLeft, HiChevronRight, HiCalendar, HiLocationMarker, HiClock } from "react-icons/hi";
 import { useRouter } from "next/navigation";
-import { cn } from "@/lib/utils";
+import { HiChevronRight, HiCheckCircle, HiClock, HiXCircle } from "react-icons/hi";
+import { DUMMY_BOOKINGS, type Booking } from "@/data/services";
 import Navbar from "@/components/layout/Navbar";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 
-const bookings = [
-  { id: "1", name: "Master Electrician", date: "25 May 2024", time: "10:00 AM - 12:00 PM", status: "Confirmed", price: 499, address: "Sector 21, Noida", icon: "⚡" },
-  { id: "2", name: "Emergency Plumber", date: "28 May 2024", time: "11:00 AM - 01:00 PM", status: "Pending", price: 399, address: "Sector 21, Noida", icon: "🔧" },
-  { id: "3", name: "Luxury Car Driver", date: "30 May 2024", time: "01:00 PM - 03:00 PM", status: "Confirmed", price: 899, address: "Sector 21, Noida", icon: "🚗" },
-  { id: "4", name: "Deep Cleaning Service", date: "02 June 2024", time: "09:00 AM - 04:00 PM", status: "Completed", price: 1500, address: "Sector 21, Noida", icon: "🧼" },
-];
+const STATUS_STYLES: Record<Booking["status"], { label: string; bg: string; text: string }> = {
+  Confirmed:  { label: "Confirmed",  bg: "bg-emerald-100", text: "text-emerald-700" },
+  Pending:    { label: "Pending",    bg: "bg-yellow-100",  text: "text-yellow-700"  },
+  Completed:  { label: "Completed",  bg: "bg-gray-100",    text: "text-gray-500"    },
+  Cancelled:  { label: "Cancelled",  bg: "bg-red-100",     text: "text-red-600"     },
+};
 
 export default function BookingsPage() {
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState("Upcoming");
+  const [tab, setTab] = useState<"Upcoming" | "Completed">("Upcoming");
 
-  const filteredBookings = activeTab === "Upcoming" 
-    ? bookings.filter(b => b.status !== "Completed")
-    : bookings.filter(b => b.status === "Completed");
+  const upcoming  = DUMMY_BOOKINGS.filter((b) => b.status === "Confirmed" || b.status === "Pending");
+  const completed = DUMMY_BOOKINGS.filter((b) => b.status === "Completed" || b.status === "Cancelled");
+  const list      = tab === "Upcoming" ? upcoming : completed;
 
   return (
-    <div className="pb-32 lg:pb-12 min-h-screen bg-gray-50/30">
-      <div className="max-w-screen-xl mx-auto p-6 md:p-12">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-12">
-          <div className="flex items-center gap-4">
-            <button onClick={() => router.back()} className="lg:hidden text-gray-900">
-              <HiArrowLeft size={24} />
-            </button>
-            <h1 className="text-3xl md:text-5xl font-black text-gray-900">My Bookings</h1>
-          </div>
+    <div className="min-h-screen bg-gray-50/40 pb-32 lg:pb-12">
+      <div className="max-w-screen-xl mx-auto px-4 lg:px-12 py-6">
 
-          <div className="bg-white p-1.5 rounded-[1.5rem] border border-gray-100 flex shadow-sm w-full md:w-fit">
-            {["Upcoming", "Completed"].map((tab) => (
-              <button
-                key={tab}
-                onClick={() => setActiveTab(tab)}
-                className={cn(
-                  "flex-1 md:w-40 py-3 text-sm font-black rounded-2xl transition-all duration-300",
-                  activeTab === tab ? "bg-blue-600 text-white shadow-xl shadow-blue-600/20" : "text-gray-400 hover:text-gray-600"
-                )}
-              >
-                {tab}
-              </button>
-            ))}
-          </div>
-        </div>
+        {/* Header */}
+        <h1 className="text-2xl lg:text-4xl font-black text-gray-900 mb-8">My Bookings</h1>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-6 md:gap-8">
-          {filteredBookings.map((booking, i) => (
-            <motion.div 
-              key={booking.id}
-              initial={{ y: 20, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              transition={{ delay: i * 0.1 }}
-              className="bg-white border border-gray-100 rounded-[2.5rem] p-6 md:p-8 flex flex-col gap-6 hover:border-blue-200 hover:shadow-2xl hover:shadow-gray-200/50 transition-all group"
+        {/* Tabs */}
+        <div className="flex gap-2 mb-8">
+          {(["Upcoming", "Completed"] as const).map((t) => (
+            <button
+              key={t}
+              onClick={() => setTab(t)}
+              className={`px-6 py-2.5 rounded-full font-black text-sm transition-all ${
+                tab === t
+                  ? "bg-blue-600 text-white shadow-lg shadow-blue-600/20"
+                  : "bg-white text-gray-500 border border-gray-100 hover:border-blue-200"
+              }`}
             >
-              <div className="flex justify-between items-start">
-                <div className="flex items-center gap-4">
-                  <div className="w-16 h-16 bg-gray-50 rounded-2xl flex items-center justify-center text-3xl group-hover:scale-110 transition-transform">
-                    {booking.icon}
-                  </div>
-                  <div>
-                    <h3 className="font-black text-xl text-gray-900 leading-tight">{booking.name}</h3>
-                    <div className={cn(
-                      "inline-flex items-center gap-1 text-[10px] font-black uppercase tracking-widest mt-1",
-                      booking.status === "Confirmed" ? "text-green-500" : booking.status === "Pending" ? "text-orange-500" : "text-gray-400"
-                    )}>
-                      {booking.status}
-                    </div>
-                  </div>
-                </div>
-                <button className="p-2 text-gray-300 group-hover:text-blue-600 transition-colors">
-                  <HiChevronRight size={28} />
-                </button>
-              </div>
-
-              <div className="flex flex-col gap-3 pt-6 border-t border-gray-50">
-                <div className="flex items-center gap-3 text-gray-500 font-bold text-sm">
-                  <HiCalendar className="text-blue-600" size={20} />
-                  <span>{booking.date}</span>
-                </div>
-                <div className="flex items-center gap-3 text-gray-500 font-bold text-sm">
-                  <HiClock className="text-blue-600" size={20} />
-                  <span>{booking.time}</span>
-                </div>
-                <div className="flex items-center gap-3 text-gray-500 font-bold text-sm">
-                  <HiLocationMarker className="text-blue-600" size={20} />
-                  <span>{booking.address}</span>
-                </div>
-              </div>
-
-              <div className="flex justify-between items-center mt-2">
-                <span className="text-2xl font-black text-gray-900">₹{booking.price}</span>
-                <button className="bg-gray-50 text-gray-600 px-6 py-2 rounded-xl text-xs font-black hover:bg-blue-600 hover:text-white transition-all uppercase tracking-widest">
-                  View Details
-                </button>
-              </div>
-            </motion.div>
+              {t}
+              <span className={`ml-2 px-2 py-0.5 rounded-full text-[10px] font-black ${tab === t ? "bg-white/20 text-white" : "bg-gray-100 text-gray-500"}`}>
+                {t === "Upcoming" ? upcoming.length : completed.length}
+              </span>
+            </button>
           ))}
         </div>
 
-        {filteredBookings.length === 0 && (
-          <div className="flex flex-col items-center justify-center py-24 text-center">
-            <div className="w-24 h-24 bg-gray-50 rounded-full flex items-center justify-center text-gray-300 mb-6">
-              <HiCalendar size={48} />
-            </div>
-            <h2 className="text-2xl font-black text-gray-900">No {activeTab} Bookings</h2>
-            <p className="text-gray-400 font-bold mt-2">You haven't booked any services in this category yet.</p>
-            <button 
-              onClick={() => router.push("/home")}
-              className="mt-8 bg-blue-600 text-white px-8 py-3 rounded-2xl font-black hover:scale-105 transition-all shadow-xl shadow-blue-600/20"
-            >
-              Explore Services
-            </button>
+        {/* Booking cards */}
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={tab}
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -12 }}
+            className="flex flex-col gap-3 lg:grid lg:grid-cols-2 lg:gap-4"
+          >
+            {list.map((b) => {
+              const style = STATUS_STYLES[b.status];
+              return (
+                <button
+                  key={b.id}
+                  onClick={() => router.push(`/services/${b.serviceId}`)}
+                  className="group flex items-center gap-4 bg-white border border-gray-100 rounded-3xl p-4 hover:shadow-xl hover:border-blue-100 hover:-translate-y-0.5 transition-all text-left"
+                >
+                  {/* Emoji */}
+                  <div className="w-14 h-14 lg:w-16 lg:h-16 rounded-2xl bg-gray-50 border border-gray-100 flex items-center justify-center text-3xl shrink-0">
+                    {b.emoji}
+                  </div>
+
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between gap-2">
+                      <p className="font-black text-gray-900 text-sm lg:text-base group-hover:text-blue-700 transition-colors">{b.serviceName}</p>
+                      <span className={`text-[10px] font-black px-2.5 py-1 rounded-full shrink-0 ${style.bg} ${style.text}`}>{style.label}</span>
+                    </div>
+                    <p className="text-xs text-gray-400 font-medium mt-0.5">{b.date} • {b.time}</p>
+                    <p className="text-xs text-gray-400 font-medium">{b.address}</p>
+                    <p className="text-sm font-black text-gray-900 mt-1.5">₹{b.price}</p>
+                  </div>
+
+                  <HiChevronRight size={18} className="text-gray-300 group-hover:text-blue-600 group-hover:translate-x-1 transition-all shrink-0" />
+                </button>
+              );
+            })}
+          </motion.div>
+        </AnimatePresence>
+
+        {list.length === 0 && (
+          <div className="text-center py-20">
+            <p className="text-5xl mb-4">{tab === "Upcoming" ? "📅" : "✅"}</p>
+            <p className="font-black text-gray-900 text-lg">No {tab.toLowerCase()} bookings</p>
+            {tab === "Upcoming" && (
+              <button onClick={() => router.push("/services")} className="mt-6 bg-blue-600 text-white px-6 py-3 rounded-2xl font-black text-sm hover:bg-blue-700 transition-all shadow-lg shadow-blue-600/20">
+                Browse Services
+              </button>
+            )}
           </div>
         )}
       </div>

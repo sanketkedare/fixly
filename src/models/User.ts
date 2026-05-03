@@ -10,6 +10,12 @@ const UserSchema = new mongoose.Schema({
     default: "user" 
   },
   mobile: { type: String },
+  isProfileComplete: { type: Boolean, default: false },
+  // Provider-specific fields (optional initially)
+  bio: { type: String },
+  category: { type: String },
+  address: { type: String },
+  rating: { type: Number, default: 0 },
   createdAt: { type: Date, default: Date.now },
 });
 
