@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { auth } from "@/lib/firebase";
 import {
   createUserWithEmailAndPassword,
@@ -53,7 +53,7 @@ async function syncUserToDB(
   }
 }
 
-export default function RegisterPage() {
+function RegisterForm() {
   const searchParams = useSearchParams();
   const isSocialMode = searchParams.get("mode") === "social";
 
@@ -275,7 +275,6 @@ export default function RegisterPage() {
 
   const isLoading = sendingOtp || verifying;
 
-  // ── Render ────────────────────────────────────────────────────────────────
   return (
     <div className="p-6 md:p-12 flex flex-col min-h-screen bg-white max-w-2xl mx-auto pb-24">
       <Link href="/login" className="p-2 -ml-2 text-gray-600 hover:text-blue-600 transition-colors w-fit">
@@ -532,5 +531,17 @@ export default function RegisterPage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function RegisterPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center bg-white">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-600"></div>
+      </div>
+    }>
+      <RegisterForm />
+    </Suspense>
   );
 }

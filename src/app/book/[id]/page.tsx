@@ -1,6 +1,7 @@
 "use client";
 
 import { useParams, useRouter } from "next/navigation";
+import Image from "next/image";
 import { useState } from "react";
 import { HiArrowLeft, HiCalendar, HiClock, HiLocationMarker, HiChat } from "react-icons/hi";
 import { getServiceById } from "@/data/services";
@@ -12,7 +13,7 @@ export default function BookServicePage() {
   const service = getServiceById(id);
 
   const [date, setDate]               = useState("");
-  const [time, setTime]               = useState("10:00");
+  const [time, setTime]               = useState("10:00 AM – 12:00 PM");
   const [address, setAddress]         = useState("Sector 21, Noida, Uttar Pradesh");
   const [instructions, setInstructions] = useState("");
   const [error, setError]             = useState("");
@@ -43,8 +44,8 @@ export default function BookServicePage() {
 
         {/* Service Summary Card */}
         <div className="bg-white border border-gray-100 rounded-3xl p-4 mb-6 flex items-center gap-4 shadow-sm">
-          <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${service.gradient} flex items-center justify-center text-3xl shadow-lg shrink-0`}>
-            {service.emoji}
+          <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${service.gradient} flex items-center justify-center overflow-hidden shadow-lg shrink-0`}>
+            <Image src={service.image} alt={service.name} width={64} height={64} className="object-cover w-full h-full" />
           </div>
           <div>
             <p className="font-black text-gray-900 text-base">{service.name}</p>

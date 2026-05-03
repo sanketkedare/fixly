@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import { HiChevronRight, HiCheckCircle, HiClock, HiXCircle } from "react-icons/hi";
 import { DUMMY_BOOKINGS, type Booking } from "@/data/services";
 import Navbar from "@/components/layout/Navbar";
@@ -66,9 +67,9 @@ export default function BookingsPage() {
                   onClick={() => router.push(`/services/${b.serviceId}`)}
                   className="group flex items-center gap-4 bg-white border border-gray-100 rounded-3xl p-4 hover:shadow-xl hover:border-blue-100 hover:-translate-y-0.5 transition-all text-left"
                 >
-                  {/* Emoji */}
-                  <div className="w-14 h-14 lg:w-16 lg:h-16 rounded-2xl bg-gray-50 border border-gray-100 flex items-center justify-center text-3xl shrink-0">
-                    {b.emoji}
+                  {/* Service Image */}
+                  <div className="w-14 h-14 lg:w-16 lg:h-16 rounded-2xl bg-gray-50 border border-gray-100 flex items-center justify-center overflow-hidden shrink-0">
+                     <Image src={b.image} alt={b.serviceName} width={64} height={64} className="object-cover w-full h-full" />
                   </div>
 
                   <div className="flex-1 min-w-0">

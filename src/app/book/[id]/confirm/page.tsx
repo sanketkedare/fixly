@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
+import Image from "next/image";
 import { HiArrowLeft, HiCheckCircle, HiCreditCard, HiCash, HiPhone } from "react-icons/hi";
 import { getServiceById } from "@/data/services";
 import Navbar from "@/components/layout/Navbar";
@@ -98,8 +99,8 @@ export default function ConfirmBookingPage() {
 
         {/* Service Summary */}
         <div className="bg-white border border-gray-100 rounded-3xl p-4 mb-4 flex items-center gap-4 shadow-sm">
-          <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${service.gradient} flex items-center justify-center text-3xl shadow-lg shrink-0`}>
-            {service.emoji}
+          <div className={`w-16 h-16 rounded-2xl bg-gradient-to-br ${service.gradient} flex items-center justify-center overflow-hidden shadow-lg shrink-0`}>
+             <Image src={service.image} alt={service.name} width={64} height={64} className="object-cover w-full h-full" />
           </div>
           <div>
             <p className="font-black text-gray-900">{service.name}</p>

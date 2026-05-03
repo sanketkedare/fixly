@@ -1,6 +1,7 @@
 "use client";
 
 import { useParams, useRouter } from "next/navigation";
+import Image from "next/image";
 import { HiArrowLeft, HiStar, HiShieldCheck, HiClock, HiCurrencyRupee, HiCheckCircle, HiHeart } from "react-icons/hi";
 import { getServiceById } from "@/data/services";
 import Navbar from "@/components/layout/Navbar";
@@ -39,8 +40,21 @@ export default function ServiceDetailPage() {
 
         {/* ── Hero / Banner ──────────────────────────────────────────────────── */}
         <div className="relative">
-          <div className={`w-full h-64 lg:h-96 bg-gradient-to-br ${service.gradient} flex items-center justify-center text-8xl lg:text-[10rem] shadow-xl`}>
-            {service.emoji}
+          <div className={`w-full h-72 lg:h-[450px] relative overflow-hidden shadow-xl`}>
+             <Image 
+                src={service.image} 
+                alt={service.name} 
+                fill 
+                className="object-cover" 
+                priority
+             />
+             <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+             
+             {/* Bottom Title Overlay (Mobile only) */}
+             <div className="absolute bottom-6 left-6 lg:hidden">
+                <span className="text-xs font-black text-white uppercase tracking-widest bg-blue-600/80 backdrop-blur-md px-3 py-1 rounded-full">{service.category}</span>
+                <h1 className="text-3xl font-black text-white mt-2 drop-shadow-lg">{service.name}</h1>
+             </div>
           </div>
 
           {/* Overlay nav buttons */}
@@ -59,54 +73,64 @@ export default function ServiceDetailPage() {
         </div>
 
         {/* ── Content ────────────────────────────────────────────────────────── */}
-        <div className="lg:grid lg:grid-cols-12 lg:gap-10 px-4 lg:px-12 pt-6">
+        <div className="lg:grid lg:grid-cols-12 lg:gap-10 px-4 lg:px-12 pt-6 lg:pt-10">
 
           {/* Left col */}
           <div className="lg:col-span-7">
             <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }}>
 
-              {/* Title + rating */}
-              <div className="flex items-start justify-between gap-4 mb-3">
+              {/* Title + rating (Desktop) */}
+              <div className="hidden lg:flex items-start justify-between gap-4 mb-4">
                 <div>
-                  <span className="text-xs font-black text-blue-600 uppercase tracking-widest bg-blue-50 px-3 py-1 rounded-full">{service.category}</span>
-                  <h1 className="text-2xl lg:text-4xl font-black text-gray-900 mt-2">{service.name}</h1>
-                  <p className="text-gray-500 font-medium mt-1">{service.description}</p>
+                  <span className="text-xs font-black text-blue-600 uppercase tracking-widest bg-blue-50 px-4 py-1.5 rounded-full">{service.category}</span>
+                  <h1 className="text-4xl lg:text-5xl font-black text-gray-900 mt-4">{service.name}</h1>
+                  <p className="text-xl text-gray-500 font-medium mt-3">{service.description}</p>
                 </div>
+              </div>
+              
+              {/* Description (Mobile only, since title is in hero) */}
+              <div className="lg:hidden mb-6">
+                 <p className="text-gray-500 font-medium">{service.description}</p>
               </div>
 
               {/* Rating row */}
-              <div className="flex items-center gap-3 mb-6">
-                <div className="flex items-center gap-1 bg-yellow-50 border border-yellow-100 px-3 py-1.5 rounded-xl">
-                  <HiStar className="text-yellow-500" size={16} />
-                  <span className="font-black text-gray-900 text-sm">{service.rating}</span>
+              <div className="flex items-center gap-4 mb-8">
+                <div className="flex items-center gap-1.5 bg-yellow-50 border border-yellow-100 px-4 py-2 rounded-2xl">
+                  <HiStar className="text-yellow-500" size={18} />
+                  <span className="font-black text-gray-900 text-base">{service.rating}</span>
                 </div>
-                <span className="text-sm text-gray-400 font-medium">{service.reviews.toLocaleString()}+ reviews</span>
-                <span className="text-sm text-gray-400 font-medium">• {service.duration}</span>
+                <span className="text-base text-gray-400 font-medium">{service.reviews.toLocaleString()}+ reviews</span>
+                <span className="text-base text-gray-400 font-medium">• {service.duration}</span>
               </div>
 
               {/* Trust badges */}
-              <div className="grid grid-cols-3 gap-3 mb-8">
+              <div className="grid grid-cols-3 gap-4 mb-10">
                 {trustBadges.map((b) => {
                   const Icon = b.icon;
                   return (
-                    <div key={b.label} className={`flex flex-col items-center text-center gap-2 p-3 ${b.bg} rounded-2xl`}>
-                      <Icon size={20} className={b.color} />
-                      <span className="text-[10px] font-black text-gray-700 leading-tight">{b.label}</span>
+                    <div key={b.label} className={`flex flex-col items-center text-center gap-3 p-4 ${b.bg} rounded-[2rem] border border-white shadow-sm`}>
+                      <div className={`w-12 h-12 rounded-2xl flex items-center justify-center bg-white shadow-sm`}>
+                         <Icon size={24} className={b.color} />
+                      </div>
+                      <span className="text-[11px] lg:text-xs font-black text-gray-700 leading-tight">{b.label}</span>
                     </div>
                   );
                 })}
               </div>
 
               {/* Service Includes */}
-              <div className="bg-gray-50 rounded-3xl p-5 mb-6">
-                <h3 className="font-black text-gray-900 text-base mb-4">Service Includes</h3>
-                <div className="flex flex-col gap-3">
+              <div className="bg-gray-50 rounded-[2.5rem] p-6 lg:p-8 mb-8 border border-gray-100">
+                <h3 className="font-black text-gray-900 text-lg mb-6 flex items-center gap-2">
+                   <div className="w-2 h-6 bg-blue-600 rounded-full" />
+                   Service Includes
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {service.includes.map((item) => (
-                    <div key={item} className="flex items-center gap-3">
-                      <div className="w-5 h-5 bg-blue-600 rounded-full flex items-center justify-center shrink-0">
-                        <HiCheckCircle size={12} className="text-white" />
+                    <div key={item} className="flex items-center gap-4 bg-white/50 p-3 rounded-2xl border border-white/50">
+                      <div className="w-6 h-6 bg-blue-600 rounded-full flex items-center justify-center shrink-0 shadow-lg shadow-blue-600/20">
+                        <HiCheckCircle size={14} className="text-white" />
                       </div>
-                      <span className="text-sm font-bold text-gray-700">{item}</span>
+                      <span className="text-sm lg:text-base font-bold text-gray-700">{item}</span>
                     </div>
                   ))}
                 </div>
@@ -116,43 +140,49 @@ export default function ServiceDetailPage() {
 
           {/* Right col — desktop booking card */}
           <div className="hidden lg:block lg:col-span-5">
-            <div className="sticky top-8 bg-white border border-gray-100 rounded-3xl p-6 shadow-xl shadow-gray-100">
-              <p className="text-3xl font-black text-gray-900 mb-1">From ₹{service.price}</p>
-              <p className="text-sm text-gray-400 font-medium mb-6">+ ₹30 convenience fee</p>
+            <div className="sticky top-8 bg-white border border-gray-100 rounded-[2.5rem] p-8 shadow-2xl shadow-gray-200/50">
+              <div className="flex items-end gap-2 mb-2">
+                 <p className="text-4xl font-black text-gray-900">₹{service.price}</p>
+                 <p className="text-sm text-gray-400 font-bold mb-1">Starting</p>
+              </div>
+              <p className="text-sm text-gray-400 font-medium mb-8">+ ₹30 convenience fee</p>
 
-              <div className="flex flex-col gap-3 mb-6 text-sm text-gray-600">
-                <div className="flex items-center gap-2">
-                  <HiClock size={16} className="text-blue-600" />
-                  <span className="font-medium">Duration: <strong>{service.duration}</strong></span>
+              <div className="flex flex-col gap-4 mb-8">
+                <div className="flex items-center gap-3 p-3 bg-blue-50 rounded-2xl">
+                  <HiClock size={20} className="text-blue-600" />
+                  <span className="text-sm font-bold text-gray-700">Service Duration: <strong>{service.duration}</strong></span>
                 </div>
-                <div className="flex items-center gap-2">
-                  <HiShieldCheck size={16} className="text-blue-600" />
-                  <span className="font-medium">Background verified professionals</span>
+                <div className="flex items-center gap-3 p-3 bg-emerald-50 rounded-2xl">
+                  <HiShieldCheck size={20} className="text-emerald-600" />
+                  <span className="text-sm font-bold text-gray-700">100% Background Verified</span>
                 </div>
               </div>
 
               <button
                 onClick={() => router.push(`/book/${service.id}`)}
-                className="w-full bg-blue-600 text-white py-4 rounded-2xl font-black text-base hover:bg-blue-700 hover:scale-[1.02] transition-all shadow-xl shadow-blue-600/20"
+                className="w-full bg-blue-600 text-white py-5 rounded-2xl font-black text-lg hover:bg-blue-700 hover:scale-[1.02] active:scale-98 transition-all shadow-xl shadow-blue-600/30"
               >
-                Book Now — ₹{service.price}
+                Book Now
               </button>
-              <p className="text-center text-xs text-gray-400 font-medium mt-3">No payment required until service is done</p>
+              <p className="text-center text-xs text-gray-400 font-bold mt-4 uppercase tracking-widest">Pay after service is done</p>
             </div>
           </div>
         </div>
       </div>
 
       {/* ── Mobile sticky bottom bar ──────────────────────────────────────── */}
-      <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 px-4 pt-3 pb-6 z-30">
-        <div className="flex items-center justify-between mb-3">
+      <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-white/80 backdrop-blur-xl border-t border-gray-100 px-6 pt-4 pb-8 z-30">
+        <div className="flex items-center justify-between">
           <div>
-            <p className="text-2xl font-black text-gray-900">₹{service.price}</p>
-            <p className="text-xs text-gray-400 font-medium">Starting price</p>
+            <div className="flex items-baseline gap-1">
+               <p className="text-2xl font-black text-gray-900">₹{service.price}</p>
+               <p className="text-[10px] text-gray-400 font-black uppercase">Start</p>
+            </div>
+            <p className="text-[10px] text-blue-600 font-black uppercase tracking-tight">+ ₹30 fee</p>
           </div>
           <button
             onClick={() => router.push(`/book/${service.id}`)}
-            className="bg-blue-600 text-white px-8 py-3.5 rounded-2xl font-black text-sm hover:bg-blue-700 transition-all shadow-xl shadow-blue-600/20"
+            className="bg-blue-600 text-white px-10 py-4 rounded-2xl font-black text-sm hover:bg-blue-700 active:scale-95 transition-all shadow-xl shadow-blue-600/30"
           >
             Book Now
           </button>

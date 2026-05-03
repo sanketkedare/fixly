@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import { useState } from "react";
 import { HiArrowLeft, HiSearch, HiStar, HiChevronRight } from "react-icons/hi";
 import { SERVICES } from "@/data/services";
@@ -72,9 +73,9 @@ export default function ServicesPage() {
               onClick={() => router.push(`/services/${service.id}`)}
               className="group flex items-center gap-4 bg-white border border-gray-100 rounded-3xl p-4 hover:shadow-xl hover:border-blue-100 hover:-translate-y-0.5 transition-all text-left"
             >
-              {/* Emoji thumbnail */}
-              <div className={`w-16 h-16 lg:w-20 lg:h-20 rounded-2xl bg-gradient-to-br ${service.gradient} flex items-center justify-center text-3xl lg:text-4xl shadow-lg shrink-0`}>
-                {service.emoji}
+              {/* Image thumbnail */}
+              <div className={`w-16 h-16 lg:w-20 lg:h-20 rounded-2xl bg-gradient-to-br ${service.gradient} flex items-center justify-center overflow-hidden shadow-lg shrink-0`}>
+                <Image src={service.image} alt={service.name} width={80} height={80} className="object-cover w-full h-full transition-transform duration-300 group-hover:scale-110" />
               </div>
 
               <div className="flex-1 min-w-0">

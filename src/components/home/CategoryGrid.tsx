@@ -1,21 +1,17 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import { cn } from "@/lib/utils";
 import {
-  HiLightBulb,
-  HiTruck,
-  HiFire,
-  HiOutlineEmojiHappy,
   HiOutlineViewGrid,
 } from "react-icons/hi";
-import { FaWrench, FaPaintRoller, FaSoap } from "react-icons/fa";
 
 const categories = [
   {
     id: "electrician",
     name: "Electrician",
-    icon: HiLightBulb,
+    image: "/services/electrician.png",
     // mobile pill colours
     color: "bg-yellow-50 text-yellow-500 border-yellow-100",
     // desktop card gradient + accent
@@ -26,7 +22,7 @@ const categories = [
   {
     id: "plumber",
     name: "Plumber",
-    icon: FaWrench,
+    image: "/services/plumber.png",
     color: "bg-blue-50 text-blue-500 border-blue-100",
     gradient: "from-blue-400 to-blue-600",
     lightBg: "bg-blue-50",
@@ -34,7 +30,7 @@ const categories = [
   {
     id: "driver",
     name: "Driver",
-    icon: HiTruck,
+    image: "/services/driver.png",
     color: "bg-green-50 text-green-500 border-green-100",
     gradient: "from-emerald-400 to-green-600",
     lightBg: "bg-green-50",
@@ -42,7 +38,7 @@ const categories = [
   {
     id: "cook",
     name: "Cook",
-    icon: HiOutlineEmojiHappy,
+    image: "/services/cook.png",
     color: "bg-orange-50 text-orange-500 border-orange-100",
     gradient: "from-orange-400 to-orange-600",
     lightBg: "bg-orange-50",
@@ -51,7 +47,7 @@ const categories = [
   {
     id: "carpenter",
     name: "Carpenter",
-    icon: FaWrench,
+    image: "/services/carpenter.png",
     color: "bg-amber-50 text-amber-600 border-amber-100",
     gradient: "from-amber-500 to-yellow-600",
     lightBg: "bg-amber-50",
@@ -59,7 +55,7 @@ const categories = [
   {
     id: "painter",
     name: "Painter",
-    icon: FaPaintRoller,
+    image: "/services/painter.png",
     color: "bg-red-50 text-red-500 border-red-100",
     gradient: "from-rose-400 to-red-600",
     lightBg: "bg-red-50",
@@ -67,7 +63,7 @@ const categories = [
   {
     id: "ac-repair",
     name: "AC Repair",
-    icon: HiFire,
+    image: "/services/ac-repair.png",
     color: "bg-cyan-50 text-cyan-500 border-cyan-100",
     gradient: "from-cyan-400 to-sky-600",
     lightBg: "bg-cyan-50",
@@ -75,7 +71,7 @@ const categories = [
   {
     id: "cleaner",
     name: "Cleaner",
-    icon: FaSoap,
+    image: "/services/cleaner.png",
     color: "bg-teal-50 text-teal-500 border-teal-100",
     gradient: "from-teal-400 to-teal-600",
     lightBg: "bg-teal-50",
@@ -103,7 +99,7 @@ export default function CategoryGrid() {
       {/* ── Mobile: compact pill grid ────────────────────────────────────── */}
       <div className="grid grid-cols-3 gap-4 lg:hidden">
         {categories.map((cat) => {
-          const Icon = cat.icon;
+          const Icon = "icon" in cat ? cat.icon : null;
           return (
             <button
               key={cat.id}
@@ -112,11 +108,15 @@ export default function CategoryGrid() {
             >
               <div
                 className={cn(
-                  "w-16 h-16 rounded-2xl flex items-center justify-center text-2xl shadow-sm transition-all duration-300 group-hover:scale-105 border",
+                  "w-16 h-16 rounded-2xl flex items-center justify-center overflow-hidden shadow-sm transition-all duration-300 group-hover:scale-105 border",
                   cat.color
                 )}
               >
-                <Icon />
+                {cat.image ? (
+                   <Image src={cat.image} alt={cat.name} width={64} height={64} className="object-cover w-full h-full" />
+                ) : Icon && (
+                  <Icon className="text-2xl" />
+                )}
               </div>
               <span className="text-[10px] font-black text-gray-700 uppercase tracking-tight text-center">
                 {cat.name}
@@ -129,7 +129,7 @@ export default function CategoryGrid() {
       {/* ── Desktop: premium card grid ───────────────────────────────────── */}
       <div className="hidden lg:grid grid-cols-3 gap-4">
         {categories.map((cat) => {
-          const Icon = cat.icon;
+          const Icon = "icon" in cat ? cat.icon : null;
           return (
             <button
               key={cat.id}
@@ -144,13 +144,17 @@ export default function CategoryGrid() {
                 cat.gradient
               )} />
 
-              {/* Icon */}
+              {/* Icon/Image */}
               <div className={cn(
-                "w-12 h-12 rounded-xl flex items-center justify-center text-xl shrink-0",
-                "bg-gradient-to-br text-white shadow-lg transition-transform duration-300 group-hover:scale-110",
-                cat.gradient
+                "w-12 h-12 rounded-xl flex items-center justify-center shrink-0 overflow-hidden",
+                !cat.image && "bg-gradient-to-br text-white shadow-lg transition-transform duration-300 group-hover:scale-110",
+                !cat.image && cat.gradient
               )}>
-                <Icon />
+                {cat.image ? (
+                   <Image src={cat.image} alt={cat.name} width={48} height={48} className="object-cover w-full h-full transition-transform duration-300 group-hover:scale-110" />
+                ) : Icon && (
+                  <Icon size={20} />
+                )}
               </div>
 
               {/* Label + sub */}
