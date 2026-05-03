@@ -9,6 +9,7 @@ const UserSchema = new mongoose.Schema({
     enum: ["user", "admin", "service_provider"], 
     default: "user" 
   },
+  mobile: { type: String },
   createdAt: { type: Date, default: Date.now },
 });
 

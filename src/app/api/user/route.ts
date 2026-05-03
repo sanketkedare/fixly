@@ -23,7 +23,7 @@ export async function POST(request: Request) {
   try {
     await connectDB();
     const body = await request.json();
-    const { firebaseId, email, name, role } = body;
+    const { firebaseId, email, name, role, mobile } = body;
 
     let user = await User.findOne({ firebaseId });
 
@@ -33,6 +33,7 @@ export async function POST(request: Request) {
         email,
         name,
         role: role || "user",
+        mobile,
       });
     }
 

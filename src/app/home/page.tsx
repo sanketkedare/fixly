@@ -1,6 +1,7 @@
 "use client";
 
-import { HiLocationMarker, HiSearch, HiBell, HiChevronDown, HiTrendingUp } from "react-icons/hi";
+import Image from "next/image";
+import { HiLocationMarker, HiSearch, HiBell, HiChevronDown, HiTrendingUp, HiShieldCheck, HiCurrencyRupee, HiCalendar } from "react-icons/hi";
 import CategoryGrid from "@/components/home/CategoryGrid";
 import Navbar from "@/components/layout/Navbar";
 import ServiceCard from "@/components/home/ServiceCard";
@@ -38,127 +39,111 @@ export default function HomePage() {
   const { address, loading: locationLoading, refreshLocation } = useLocation();
 
   return (
-    <div className="flex flex-col lg:flex-row min-h-screen bg-white md:bg-gray-50/30">
-      {/* Main Content Area */}
-      <div className="flex-grow pb-32 lg:pb-12">
-        {/* Header Section */}
-        <div className="bg-white md:bg-transparent border-b md:border-none border-gray-100 sticky top-0 z-30 px-4 md:px-12 py-6">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 max-w-none">
-            <div className="flex flex-col">
-              <h1 className="text-2xl md:text-4xl font-black text-gray-900">Discover Services</h1>
-              <button 
-                onClick={() => refreshLocation()}
-                disabled={locationLoading}
-                className="flex items-center gap-2 text-sm md:text-base font-bold text-gray-500 mt-2 hover:text-blue-600 transition-colors w-fit group"
-              >
-                <HiLocationMarker className={cn("text-blue-600", locationLoading && "animate-bounce")} />
-                <span className={cn(locationLoading && "opacity-50")}>{locationLoading ? "Detecting location..." : address}</span>
-                <HiChevronDown className="text-gray-400 group-hover:text-blue-600" />
-              </button>
-            </div>
-
-            <div className="flex items-center gap-4 flex-grow max-w-3xl">
-              <div className="relative flex-grow group">
-                <HiSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-blue-600 transition-colors" size={24} />
-                <input 
-                  type="text" 
-                  placeholder="Search for any service (e.g. Electrician, AC Repair...)" 
-                  className="w-full bg-white md:bg-white border border-gray-100 md:border-gray-200 rounded-[2rem] py-4 pl-14 pr-4 focus:outline-none focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all text-sm md:text-base shadow-xl shadow-gray-200/50"
-                />
-              </div>
-              <button className="hidden md:flex p-4 bg-white rounded-2xl text-gray-600 border border-gray-200 hover:bg-blue-50 hover:text-blue-600 transition-all shadow-lg shadow-gray-200/50">
-                <HiBell size={28} />
-              </button>
-            </div>
-          </div>
+    <div className="flex flex-col min-h-screen bg-white px-[5%] lg:px-[10%] py-6 pb-32">
+      {/* Header: Location & Notifications */}
+      <header className="flex items-center justify-between mb-8">
+        <div className="flex flex-col">
+          <button 
+            onClick={() => refreshLocation()}
+            className="flex items-center gap-1 text-gray-900 hover:text-blue-600 transition-colors"
+          >
+            <HiLocationMarker className="text-blue-600" size={18} />
+            <span className="text-sm font-bold truncate max-w-[200px]">
+              {locationLoading ? "Detecting..." : address || "Sector 21, Noida"}
+            </span>
+            <HiChevronDown className="text-gray-400" />
+          </button>
         </div>
+        <button className="p-2 bg-gray-50 rounded-full text-gray-900 border border-gray-100 shadow-sm">
+          <HiBell size={24} />
+        </button>
+      </header>
 
-        <div className="px-4 md:px-12 flex flex-col gap-8 md:gap-16">
+      <div className="lg:grid lg:grid-cols-12 lg:gap-16">
+        <div className="lg:col-span-8">
+          {/* Search Bar */}
+          <div className="relative mb-8 group">
+            <HiSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-blue-600 transition-colors" size={20} />
+            <input 
+              type="text" 
+              placeholder="Search for a service..." 
+              className="w-full bg-gray-50 border border-gray-100 rounded-xl py-4 pl-12 pr-4 focus:outline-none focus:ring-2 focus:ring-blue-500/10 focus:border-blue-500 transition-all text-sm font-medium"
+            />
+          </div>
+
           {/* Hero Banner */}
           <motion.div 
             initial={{ scale: 0.98, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
-            className="w-full"
+            className="bg-[#0A1A3B] rounded-3xl p-8 relative overflow-hidden mb-12 min-h-[220px] flex items-center shadow-xl shadow-blue-900/20"
           >
-            <div className="bg-blue-600 rounded-[2.5rem] md:rounded-[3.5rem] p-8 md:p-16 relative overflow-hidden flex items-center min-h-[220px] md:min-h-[400px] shadow-2xl shadow-blue-600/30">
-              <div className="relative z-10 w-full md:w-3/5">
-                <span className="bg-white/20 backdrop-blur-md text-white text-xs md:text-sm font-black px-4 py-2 rounded-full mb-6 inline-block uppercase tracking-widest">Limited Offer</span>
-                <h2 className="text-3xl md:text-6xl font-black text-white leading-[1.1] mb-8">
-                  Get <span className="text-yellow-400 underline underline-offset-8">20% Off</span> on Your First Deep Cleaning
-                </h2>
-                <button className="bg-white text-blue-600 px-10 py-4 md:py-6 rounded-2xl md:rounded-3xl text-sm md:text-xl font-black hover:scale-105 active:scale-95 transition-all shadow-2xl">
-                  Book with Discount
-                </button>
-              </div>
-              <div className="absolute right-[-10%] bottom-[-10%] text-[20rem] md:text-[35rem] opacity-10 grayscale brightness-200 pointer-events-none select-none">
-                 🧼
-              </div>
+            <div className="relative z-10 w-3/5">
+              <h2 className="text-2xl md:text-4xl font-black text-white leading-tight mb-6">
+                Reliable Services <br />
+                <span className="text-yellow-400">Right at Your Doorstep</span>
+              </h2>
+              <button className="bg-white text-[#0A1A3B] px-8 py-3 rounded-xl text-base font-black hover:scale-105 transition-all shadow-lg">
+                Book Now
+              </button>
+            </div>
+            <div className="absolute right-[-20px] bottom-[-20px] w-64 h-64 lg:w-80 lg:h-80 opacity-90">
+               <Image src="/fixly home.png" alt="Worker" fill className="object-contain" />
             </div>
           </motion.div>
 
-          {/* Categories */}
-          <div>
-            <div className="flex justify-between items-end mb-8 px-2">
-              <div>
-                <h2 className="text-xl md:text-3xl font-black text-gray-900">Explore Categories</h2>
-                <p className="text-gray-400 font-bold mt-1">What can we help you with today?</p>
-              </div>
-              <button className="text-blue-600 font-black hover:underline px-4 py-2 bg-blue-50 rounded-xl transition-colors">View All</button>
+          {/* Popular Services Section */}
+          <section className="mb-12">
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="text-xl font-black text-gray-900 tracking-tight">Popular Services</h3>
             </div>
             <CategoryGrid />
-          </div>
+          </section>
+        </div>
 
-          {/* Grid Layout for Services and Trending */}
-          <div className="grid grid-cols-1 xl:grid-cols-3 gap-12">
-            <div className="xl:col-span-2">
-              <div className="flex justify-between items-end mb-8 px-2">
-                <h2 className="text-xl md:text-3xl font-black text-gray-900">Recommended For You</h2>
-                <button className="text-blue-600 font-black hover:underline">See More</button>
+        {/* Sidebar: Why Choose Us Section */}
+        <div className="lg:col-span-4 space-y-12">
+          <section>
+            <h3 className="text-xl font-black text-gray-900 tracking-tight mb-6">Why Choose Us?</h3>
+            <div className="grid grid-cols-3 lg:grid-cols-1 gap-4 lg:gap-6">
+              <div className="flex flex-col lg:flex-row items-center lg:items-center text-center lg:text-left gap-2 lg:gap-4 lg:p-4 lg:bg-gray-50 lg:rounded-2xl lg:border lg:border-gray-100">
+                <div className="w-12 h-12 bg-blue-50 rounded-2xl flex items-center justify-center text-blue-600 shadow-sm border border-blue-100 shrink-0">
+                   <HiShieldCheck size={24} />
+                </div>
+                <div>
+                  <span className="text-[10px] lg:text-sm font-black text-gray-700 uppercase lg:normal-case tracking-tighter leading-tight">Verified Professionals</span>
+                  <p className="hidden lg:block text-xs text-gray-400 font-medium">Background checked experts</p>
+                </div>
               </div>
-              <motion.div 
-                variants={container}
-                initial="hidden"
-                whileInView="show"
-                viewport={{ once: true }}
-                className="grid grid-cols-1 md:grid-cols-2 gap-6"
-              >
-                {popularServices.map((service) => (
-                  <motion.div key={service.id} variants={item}>
-                    <ServiceCard {...service} />
-                  </motion.div>
-                ))}
-              </motion.div>
-            </div>
-
-            {/* Trending Sidebar for Desktop */}
-            <div className="hidden xl:block bg-white p-8 rounded-[2.5rem] border border-gray-100 shadow-xl shadow-gray-200/50 h-fit sticky top-32">
-              <div className="flex items-center gap-3 mb-8">
-                <HiTrendingUp className="text-blue-600" size={32} />
-                <h3 className="text-2xl font-black text-gray-900">Trending Now</h3>
+              <div className="flex flex-col lg:flex-row items-center lg:items-center text-center lg:text-left gap-2 lg:gap-4 lg:p-4 lg:bg-gray-50 lg:rounded-2xl lg:border lg:border-gray-100">
+                <div className="w-12 h-12 bg-orange-50 rounded-2xl flex items-center justify-center text-orange-600 shadow-sm border border-orange-100 shrink-0">
+                   <HiCurrencyRupee size={24} />
+                </div>
+                <div>
+                  <span className="text-[10px] lg:text-sm font-black text-gray-700 uppercase lg:normal-case tracking-tighter leading-tight">Affordable Pricing</span>
+                  <p className="hidden lg:block text-xs text-gray-400 font-medium">No hidden costs</p>
+                </div>
               </div>
-              
-              <div className="flex flex-col gap-6">
-                {trendingServices.map((t, i) => (
-                  <div key={i} className="flex items-center justify-between p-4 bg-gray-50 rounded-2xl border border-gray-100 group cursor-pointer hover:border-blue-200 transition-all">
-                    <div className="flex flex-col">
-                      <span className="font-black text-gray-900 group-hover:text-blue-600 transition-colors">{t.name}</span>
-                      <span className="text-[10px] font-black text-gray-400 uppercase">Increased demand</span>
-                    </div>
-                    <span className={cn("font-black", t.color)}>{t.trend}</span>
-                  </div>
-                ))}
-              </div>
-
-              <div className="mt-12 bg-gray-900 rounded-3xl p-6 text-white relative overflow-hidden">
-                <h4 className="text-lg font-black mb-2 relative z-10">Refer & Earn</h4>
-                <p className="text-sm text-gray-400 mb-6 relative z-10">Invite friends and get ₹200 off on your next booking.</p>
-                <button className="w-full bg-blue-600 py-3 rounded-xl font-black text-sm hover:bg-blue-700 transition-all relative z-10">
-                  Invite Friends
-                </button>
-                <div className="absolute top-[-20px] right-[-20px] text-6xl opacity-10 rotate-12">🎁</div>
+              <div className="flex flex-col lg:flex-row items-center lg:items-center text-center lg:text-left gap-2 lg:gap-4 lg:p-4 lg:bg-gray-50 lg:rounded-2xl lg:border lg:border-gray-100">
+                <div className="w-12 h-12 bg-green-50 rounded-2xl flex items-center justify-center text-green-600 shadow-sm border border-green-100 shrink-0">
+                   <HiCalendar size={24} />
+                </div>
+                <div>
+                  <span className="text-[10px] lg:text-sm font-black text-gray-700 uppercase lg:normal-case tracking-tighter leading-tight">On-time Service</span>
+                  <p className="hidden lg:block text-xs text-gray-400 font-medium">Punctual and reliable</p>
+                </div>
               </div>
             </div>
-          </div>
+          </section>
+
+          {/* Additional Desktop Sidebar Content */}
+          <section className="hidden lg:block p-6 bg-blue-600 rounded-3xl text-white relative overflow-hidden">
+             <h4 className="text-xl font-black mb-2">Refer & Earn</h4>
+             <p className="text-sm text-blue-100 mb-6">Invite your friends and get ₹200 off your next booking!</p>
+             <button className="w-full bg-white text-blue-600 py-3 rounded-xl font-black text-sm hover:scale-105 transition-all shadow-lg">
+                Invite Friends
+             </button>
+             <div className="absolute top-[-20px] right-[-20px] text-6xl opacity-10 rotate-12">🎁</div>
+          </section>
         </div>
       </div>
 

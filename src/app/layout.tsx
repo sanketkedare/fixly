@@ -21,6 +21,10 @@ export const metadata: Metadata = {
   description: "Reliable services right at your doorstep",
 };
 
+import { StoreProvider } from "@/store/Provider";
+import Toaster from "@/components/ui/Toaster";
+import ConfirmModal from "@/components/ui/ConfirmModal";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -28,21 +32,25 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased bg-gray-50 min-h-screen text-gray-900`}>
-        <AuthProvider>
-          <LocationProvider>
-            <div className="flex min-h-screen">
-              <Sidebar />
-              <div className="flex-grow flex flex-col min-h-screen">
-                <QueryProvider>
-                  <main className="flex-grow w-full bg-white md:bg-transparent relative overflow-x-hidden">
-                    {children}
-                  </main>
-                </QueryProvider>
+      <body suppressHydrationWarning className={`${geistSans.variable} ${geistMono.variable} antialiased bg-gray-50 min-h-screen text-gray-900`}>
+        <StoreProvider>
+          <AuthProvider>
+            <LocationProvider>
+              <div className="flex min-h-screen">
+                <Sidebar />
+                <div className="flex-grow flex flex-col min-h-screen">
+                  <QueryProvider>
+                    <main className="flex-grow w-full bg-white md:bg-transparent relative overflow-x-hidden">
+                      {children}
+                    </main>
+                    <Toaster />
+                    <ConfirmModal />
+                  </QueryProvider>
+                </div>
               </div>
-            </div>
-          </LocationProvider>
-        </AuthProvider>
+            </LocationProvider>
+          </AuthProvider>
+        </StoreProvider>
       </body>
     </html>
   );

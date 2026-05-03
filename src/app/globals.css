@@ -29,21 +29,22 @@
   display: none; /* Chrome, Safari, Opera */
 }
 
-/* Custom Utilities */
-.glass {
-  @apply bg-white/70 backdrop-blur-lg border border-white/20 shadow-xl;
-}
+@layer utilities {
+  .glass {
+    @apply bg-white/70 backdrop-blur-lg border border-white/20 shadow-xl;
+  }
 
-.card-shadow {
-  @apply shadow-2xl shadow-blue-900/5;
-}
+  .card-shadow {
+    @apply shadow-2xl shadow-blue-900/5;
+  }
 
-.text-gradient {
-  @apply bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-blue-400;
-}
+  .text-gradient {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-blue-400;
+  }
 
-.flex-center {
-  @apply flex items-center justify-center;
+  .flex-center {
+    @apply flex items-center justify-center;
+  }
 }
 
 /* Fix for mobile height issues */

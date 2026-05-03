@@ -7,6 +7,8 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { HiArrowLeft, HiMail, HiLockClosed, HiEyeOff, HiEye } from "react-icons/hi";
 import { FaGoogle, FaApple } from "react-icons/fa";
+import { useAppDispatch } from "@/store/hooks";
+import { showToast } from "@/store/slices/uiSlice";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -14,6 +16,7 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
+  const dispatch = useAppDispatch();
 
   const syncUserToDB = async (user: any) => {
     try {
@@ -32,15 +35,42 @@ export default function LoginPage() {
     }
   };
 
+  const validate = () => {
+    if (!email || !password) {
+      dispatch(showToast({ message: "Please fill in all fields.", type: "error" }));
+      return false;
+    }
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      dispatch(showToast({ message: "Please enter a valid email address.", type: "error" }));
+      return false;
+    }
+    if (password.length < 6) {
+      dispatch(showToast({ message: "Password must be at least 6 characters.", type: "error" }));
+      return false;
+    }
+    return true;
+  };
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!validate()) return;
+    
     setLoading(true);
+    dispatch(showToast({ message: "Logging in...", type: "loading" }));
+    
     try {
       await signInWithEmailAndPassword(auth, email, password);
+      dispatch(showToast({ message: "Welcome back! Login successful.", type: "success" }));
       router.push("/home");
-    } catch (error) {
+    } catch (error: any) {
       console.error("Login error:", error);
-      alert("Invalid credentials. Please try again.");
+      let message = "Invalid credentials. Please try again.";
+      if (error.code === "auth/user-not-found") message = "No account found with this email.";
+      if (error.code === "auth/wrong-password") message = "Incorrect password. Please try again.";
+      if (error.code === "auth/invalid-email") message = "Please enter a valid email address.";
+      
+      dispatch(showToast({ message, type: "error" }));
     } finally {
       setLoading(false);
     }
@@ -48,14 +78,16 @@ export default function LoginPage() {
 
   const handleGoogleLogin = async () => {
     setLoading(true);
+    dispatch(showToast({ message: "Connecting to Google...", type: "loading" }));
     const provider = new GoogleAuthProvider();
     try {
       const result = await signInWithPopup(auth, provider);
       await syncUserToDB(result.user);
+      dispatch(showToast({ message: "Google login successful!", type: "success" }));
       router.push("/home");
     } catch (error) {
       console.error("Google login error:", error);
-      alert("Google login failed. Please try again.");
+      dispatch(showToast({ message: "Google login failed. Please try again.", type: "error" }));
     } finally {
       setLoading(false);
     }

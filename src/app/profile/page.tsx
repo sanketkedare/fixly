@@ -1,17 +1,29 @@
 "use client";
 
-import { HiUser, HiCamera, HiPencil, HiCheckCircle, HiChevronRight, HiOutlineShieldCheck, HiCreditCard, HiUsers } from "react-icons/hi";
+import { HiUser, HiCamera, HiPencil, HiCheckCircle, HiChevronRight, HiOutlineShieldCheck, HiCreditCard, HiUsers, HiLogout } from "react-icons/hi";
 import { motion } from "framer-motion";
 import Navbar from "@/components/layout/Navbar";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/context/AuthContext";
+import { useRouter } from "next/navigation";
 
 export default function ProfilePage() {
+  const { user, logout } = useAuth();
+  const router = useRouter();
+
   const menuItems = [
     { label: "Account Information", icon: HiUser, color: "text-blue-500", bg: "bg-blue-50" },
     { label: "Payment Methods", icon: HiCreditCard, color: "text-green-500", bg: "bg-green-50" },
     { label: "Refer & Earn", icon: HiUsers, color: "text-purple-500", bg: "bg-purple-50" },
     { label: "Security & Privacy", icon: HiOutlineShieldCheck, color: "text-red-500", bg: "bg-red-50" },
   ];
+
+  const handleLogout = async () => {
+    await logout();
+    router.push("/login");
+  };
+
+  if (!user) return null;
 
   return (
     <div className="min-h-screen bg-gray-50/30 pb-32 lg:pb-12">
@@ -23,20 +35,20 @@ export default function ProfilePage() {
           <div className="lg:col-span-1">
             <div className="bg-white rounded-[2.5rem] p-8 md:p-10 border border-gray-100 shadow-xl shadow-gray-200/50 flex flex-col items-center text-center">
               <div className="relative mb-6">
-                <div className="w-32 h-32 md:w-40 md:h-40 bg-gradient-to-br from-blue-600 to-blue-400 rounded-full flex items-center justify-center text-5xl md:text-6xl text-white shadow-2xl border-4 border-white">
-                  SK
+                <div className="w-32 h-32 md:w-40 md:h-40 bg-gradient-to-br from-blue-600 to-blue-400 rounded-full flex items-center justify-center text-5xl md:text-6xl text-white shadow-2xl border-4 border-white font-black">
+                  {user.name?.charAt(0) || "U"}
                 </div>
                 <button className="absolute bottom-1 right-1 w-10 h-10 md:w-12 md:h-12 bg-white rounded-2xl flex items-center justify-center text-blue-600 shadow-xl border border-gray-100 hover:scale-110 transition-all">
                   <HiCamera size={24} />
                 </button>
               </div>
               
-              <h2 className="text-2xl md:text-3xl font-black text-gray-900">Sanket Kedare</h2>
-              <p className="text-gray-400 font-bold mt-1">sanket@example.com</p>
+              <h2 className="text-2xl md:text-3xl font-black text-gray-900">{user.name}</h2>
+              <p className="text-gray-400 font-bold mt-1">{user.email}</p>
               
               <div className="mt-6 flex items-center gap-2 bg-green-50 text-green-600 px-4 py-2 rounded-xl font-black text-xs uppercase tracking-widest">
                 <HiCheckCircle size={18} />
-                <span>Verified User</span>
+                <span className="capitalize">{user.role} Account</span>
               </div>
 
               <div className="grid grid-cols-2 gap-4 w-full mt-10">
@@ -45,8 +57,8 @@ export default function ProfilePage() {
                   <span className="text-xl font-black text-gray-900">12</span>
                 </div>
                 <div className="bg-gray-50 p-4 rounded-2xl border border-gray-100">
-                  <span className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Spent</span>
-                  <span className="text-xl font-black text-gray-900">₹4.2k</span>
+                  <span className="block text-[10px] font-black text-gray-400 uppercase tracking-widest mb-1">Status</span>
+                  <span className="text-xl font-black text-gray-900 text-blue-600">Pro</span>
                 </div>
               </div>
             </div>
@@ -76,6 +88,22 @@ export default function ProfilePage() {
                     </button>
                   );
                 })}
+
+                {/* Logout Button for Mobile/Desktop */}
+                <button 
+                  onClick={handleLogout}
+                  className="group flex items-center justify-between p-4 md:p-6 hover:bg-red-50 rounded-3xl transition-all mt-4"
+                >
+                  <div className="flex items-center gap-6">
+                    <div className="w-12 h-12 md:w-14 md:h-14 rounded-2xl bg-red-50 text-red-500 flex items-center justify-center text-2xl shadow-sm">
+                      <HiLogout />
+                    </div>
+                    <span className="text-base md:text-xl font-black text-gray-700 group-hover:text-red-600 transition-colors">
+                      Logout
+                    </span>
+                  </div>
+                  <HiChevronRight size={24} className="text-gray-300 group-hover:text-red-600 group-hover:translate-x-1 transition-all" />
+                </button>
               </div>
             </div>
 
