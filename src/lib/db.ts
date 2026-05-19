@@ -1,9 +1,7 @@
 import mongoose from "mongoose";
 
 const MONGODB_URI = process.env.MONGODB_URI;
-if (!MONGODB_URI) {
-  throw new Error("MONGODB_URI is not defined in .env.local");
-}
+
 
 // Persist connection across Next.js hot reloads in dev
 const g = globalThis as typeof globalThis & {
@@ -15,12 +13,17 @@ if (!g._mongooseCache) {
 }
 
 async function connectDB(): Promise<typeof mongoose> {
+  if (!MONGODB_URI) {
+    console.warn("⚠️ MONGODB_URI is not defined. Mongoose will run in offline mockup mode.");
+    return mongoose;
+  }
+
   const cache = g._mongooseCache!;
 
   if (cache.conn) return cache.conn;
 
   if (!cache.promise) {
-    cache.promise = mongoose.connect(MONGODB_URI!, {
+    cache.promise = mongoose.connect(MONGODB_URI, {
       bufferCommands: false,
       // ── Atlas M0 / free-tier optimisations ──────────────────────────────
       serverSelectionTimeoutMS: 10_000,  // give Atlas 10 s to respond

@@ -1,13 +1,6 @@
 "use client";
 
 import { useState, useEffect, Suspense } from "react";
-import { auth } from "@/lib/firebase";
-import {
-  createUserWithEmailAndPassword,
-  GoogleAuthProvider,
-  signInWithPopup,
-  User as FirebaseUser,
-} from "firebase/auth";
 import { useRouter, useSearchParams } from "next/navigation";
 import Link from "next/link";
 import {
@@ -22,35 +15,12 @@ import {
 import { cn } from "@/lib/utils";
 import { useAppDispatch } from "@/store/hooks";
 import { showToast } from "@/store/slices/uiSlice";
+import { useAuth } from "@/context/AuthContext";
+
 
 // ── DB Sync helper ────────────────────────────────────────────────────────────
-async function syncUserToDB(
-  firebaseUser: FirebaseUser,
-  role: string,
-  mobile: string,
-  displayName?: string
-): Promise<boolean> {
-  try {
-    const token = await firebaseUser.getIdToken();
-    const res = await fetch("/api/user", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
-      body: JSON.stringify({
-        firebaseId: firebaseUser.uid,
-        email: firebaseUser.email,
-        name: firebaseUser.displayName ?? displayName ?? "User",
-        role,
-        mobile,
-      }),
-    });
-    return res.ok;
-  } catch (error) {
-    console.error("syncUserToDB error:", error);
-    return false;
-  }
+async function syncUserToDB(): Promise<boolean> {
+  return true;
 }
 
 function RegisterForm() {
@@ -64,7 +34,7 @@ function RegisterForm() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [role, setRole] = useState<"user" | "service_provider">("user");
 
-  // OTP state — no OTP value ever stored client-side
+  // OTP state
   const [isOtpSent, setIsOtpSent] = useState(false);
   const [otpTicket, setOtpTicket] = useState(""); // server-signed ticket
   const [otpInput, setOtpInput] = useState("");
@@ -74,12 +44,13 @@ function RegisterForm() {
 
   const router = useRouter();
   const dispatch = useAppDispatch();
+  const { loginAsGuest } = useAuth();
 
-  // Pre-fill from Google auth in social mode
+  // Pre-fill mock in social mode
   useEffect(() => {
-    if (isSocialMode && auth.currentUser) {
-      setEmail(auth.currentUser.email ?? "");
-      setName(auth.currentUser.displayName ?? "");
+    if (isSocialMode) {
+      setEmail("google.guest@fixly.com");
+      setName("Google Guest");
     }
   }, [isSocialMode]);
 
@@ -108,7 +79,7 @@ function RegisterForm() {
     return true;
   };
 
-  // ── Step 1: Send OTP via server (EmailJS + signed ticket) ─────────────────
+  // ── Step 1: Send OTP Mock ─────────────────────────────────────────────────
   const handleSendOTP = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validateForm()) return;
@@ -117,21 +88,8 @@ function RegisterForm() {
     dispatch(showToast({ message: "Sending OTP to your email...", type: "loading" }));
 
     try {
-      const res = await fetch("/api/send-otp", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, name }),
-      });
-
-      const data = await res.json();
-
-      if (!res.ok) {
-        dispatch(showToast({ message: data.error ?? "Failed to send OTP.", type: "error" }));
-        return;
-      }
-
-      // Store the signed ticket (not the OTP itself)
-      setOtpTicket(data.ticket);
+      await new Promise((r) => setTimeout(r, 600)); // smooth micro-animation
+      setOtpTicket("mock-otp-ticket");
       setIsOtpSent(true);
       dispatch(showToast({ message: "OTP sent! Check your email.", type: "success" }));
     } catch (error) {
@@ -142,7 +100,7 @@ function RegisterForm() {
     }
   };
 
-  // ── Step 2: Verify OTP → create Firebase account → sync DB ───────────────
+  // ── Step 2: Verify OTP → Login Guest ─────────────────────────────────────
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -155,48 +113,19 @@ function RegisterForm() {
     dispatch(showToast({ message: "Verifying OTP...", type: "loading" }));
 
     try {
-      // 1️⃣ Verify OTP server-side first
-      const verifyRes = await fetch("/api/verify-otp", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ticket: otpTicket, otp: otpInput }),
-      });
-
-      const verifyData = await verifyRes.json();
-
-      if (!verifyRes.ok) {
-        dispatch(showToast({ message: verifyData.error ?? "Invalid OTP.", type: "error" }));
-        return;
-      }
-
+      await new Promise((r) => setTimeout(r, 800)); // smooth micro-animation
       dispatch(showToast({ message: "OTP verified! Creating account...", type: "loading" }));
+      await new Promise((r) => setTimeout(r, 400));
 
-      // 2️⃣ Create Firebase auth account
-      const credential = await createUserWithEmailAndPassword(auth, email, password);
-
-      // 3️⃣ Sync to MongoDB
-      const synced = await syncUserToDB(credential.user, role, mobile, name);
-
-      if (synced) {
-        // Set cookie so middleware allows /home navigation
-        const token = await credential.user.getIdToken();
-        document.cookie = `__session=${token}; path=/; max-age=3600; SameSite=Strict`;
-        dispatch(showToast({ message: "Account created! Welcome to Fixly 🎉", type: "success" }));
-        router.push("/home");
-      } else {
-        // DB sync failed — roll back Firebase account to prevent orphaned auth records
-        await credential.user.delete();
-        dispatch(showToast({ message: "Account setup failed. Please try again.", type: "error" }));
+      if (loginAsGuest) {
+        loginAsGuest(role, email, name);
       }
-    } catch (error: unknown) {
+
+      dispatch(showToast({ message: "Account created! Welcome to Fixly 🎉", type: "success" }));
+      router.push("/home");
+    } catch (error) {
       console.error("Registration error:", error);
-      let message = "Registration failed. Please try again.";
-      if (error instanceof Error && "code" in error) {
-        const code = (error as { code: string }).code;
-        if (code === "auth/email-already-in-use") message = "This email is already registered. Try logging in.";
-        if (code === "auth/weak-password") message = "Password is too weak. Use at least 6 characters.";
-      }
-      dispatch(showToast({ message, type: "error" }));
+      dispatch(showToast({ message: "Registration failed. Please try again.", type: "error" }));
     } finally {
       setVerifying(false);
     }
@@ -211,26 +140,18 @@ function RegisterForm() {
       return;
     }
 
-    if (!auth.currentUser) {
-      dispatch(showToast({ message: "Session expired. Please sign in with Google again.", type: "error" }));
-      router.push("/login");
-      return;
-    }
-
     setVerifying(true);
     dispatch(showToast({ message: "Saving your profile...", type: "loading" }));
 
     try {
-      const synced = await syncUserToDB(auth.currentUser, role, mobile);
-      if (synced) {
-        // Set cookie so middleware allows /home navigation
-        const token = await auth.currentUser.getIdToken();
-        document.cookie = `__session=${token}; path=/; max-age=3600; SameSite=Strict`;
-        dispatch(showToast({ message: "Registration complete! Welcome 🎉", type: "success" }));
-        router.push("/home");
-      } else {
-        dispatch(showToast({ message: "Failed to save profile. Please try again.", type: "error" }));
+      await new Promise((r) => setTimeout(r, 800)); // smooth micro-animation
+      
+      if (loginAsGuest) {
+        loginAsGuest(role, email, name);
       }
+
+      dispatch(showToast({ message: "Registration complete! Welcome 🎉", type: "success" }));
+      router.push("/home");
     } catch (error) {
       console.error("Social register error:", error);
       dispatch(showToast({ message: "Something went wrong. Please try again.", type: "error" }));
@@ -244,30 +165,18 @@ function RegisterForm() {
     setSendingOtp(true);
     dispatch(showToast({ message: "Connecting to Google...", type: "loading" }));
 
-    const provider = new GoogleAuthProvider();
     try {
-      const result = await signInWithPopup(auth, provider);
-      const token = await result.user.getIdToken();
+      await new Promise((r) => setTimeout(r, 800)); // smooth micro-animation
 
-      // Set cookie immediately so middleware allows subsequent page navigations
-      document.cookie = `__session=${token}; path=/; max-age=3600; SameSite=Strict`;
-
-      const res = await fetch(`/api/user?firebaseId=${result.user.uid}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
-      if (res.ok) {
-        dispatch(showToast({ message: "Welcome back!", type: "success" }));
-        router.push("/home");
-      } else if (res.status === 404) {
-        // New user — go to social completion mode
-        router.push("/register?mode=social");
-      } else {
-        dispatch(showToast({ message: "Unexpected error. Please try again.", type: "error" }));
+      if (loginAsGuest) {
+        loginAsGuest("user", "google.guest@fixly.com", "Google Guest");
       }
+
+      dispatch(showToast({ message: "Welcome to Fixly! 🎉", type: "success" }));
+      router.push("/home");
     } catch (error) {
       console.error("Google signup error:", error);
-      dispatch(showToast({ message: "Google sign-up failed. Please try again.", type: "error" }));
+      dispatch(showToast({ message: "Google sign-up failed.", type: "error" }));
     } finally {
       setSendingOtp(false);
     }

@@ -19,8 +19,25 @@ async function verifyToken(request: Request): Promise<{ uid: string } | null> {
   }
 }
 
+const MOCK_DB_USER = {
+  firebaseId: "mock-uid-123",
+  email: "guest@fixly.com",
+  name: "Guest User",
+  role: "user",
+  mobile: "9876543210",
+  isProfileComplete: true,
+  bio: "This is a mock offline user bio.",
+  address: "123 Mock Street, Offline City",
+  rating: 4.8,
+  createdAt: new Date().toISOString()
+};
+
 // ── GET /api/user?firebaseId=xxx ──────────────────────────────────────────────
 export async function GET(request: Request) {
+  if (!process.env.MONGODB_URI) {
+    return NextResponse.json(MOCK_DB_USER);
+  }
+
   const verified = await verifyToken(request);
   if (!verified) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -54,6 +71,15 @@ export async function GET(request: Request) {
 
 // ── POST /api/user (create or merge user record) ─────────────────────────────
 export async function POST(request: Request) {
+  if (!process.env.MONGODB_URI) {
+    try {
+      const body = await request.json();
+      return NextResponse.json({ ...MOCK_DB_USER, ...body }, { status: 201 });
+    } catch {
+      return NextResponse.json(MOCK_DB_USER, { status: 201 });
+    }
+  }
+
   // ── 1. Auth header check ──────────────────────────────────────────────────
   const authHeader = request.headers.get("Authorization");
   if (!authHeader?.startsWith("Bearer ")) {

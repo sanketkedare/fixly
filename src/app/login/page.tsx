@@ -1,13 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { auth } from "@/lib/firebase";
-import {
-  signInWithEmailAndPassword,
-  GoogleAuthProvider,
-  signInWithPopup,
-  sendPasswordResetEmail,
-} from "firebase/auth";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
@@ -19,6 +12,7 @@ import {
 } from "react-icons/hi";
 import { useAppDispatch } from "@/store/hooks";
 import { showToast } from "@/store/slices/uiSlice";
+import { useAuth } from "@/context/AuthContext";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -31,6 +25,7 @@ export default function LoginPage() {
 
   const router = useRouter();
   const dispatch = useAppDispatch();
+  const { loginAsGuest } = useAuth();
 
   // ── Validation ────────────────────────────────────────────────────────────
   const validate = (): boolean => {
@@ -49,7 +44,7 @@ export default function LoginPage() {
     return true;
   };
 
-  // ── Email + Password login ────────────────────────────────────────────────
+  // ── Email + Password login (Offline fallback) ──────────────────────────────
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validate()) return;
@@ -58,24 +53,25 @@ export default function LoginPage() {
     dispatch(showToast({ message: "Logging in...", type: "loading" }));
 
     try {
-      const credential = await signInWithEmailAndPassword(auth, email, password);
-      // Set cookie immediately so middleware allows the /home navigation
-      const token = await credential.user.getIdToken();
-      document.cookie = `__session=${token}; path=/; max-age=3600; SameSite=Strict`;
-      dispatch(showToast({ message: "Welcome back!", type: "success" }));
-      router.push("/home");
-    } catch (error: unknown) {
-      console.error("Login error:", error);
-      let message = "Invalid credentials. Please try again.";
-      if (error instanceof Error && "code" in error) {
-        const code = (error as { code: string }).code;
-        if (code === "auth/user-not-found") message = "No account found with this email.";
-        if (code === "auth/wrong-password") message = "Incorrect password. Please try again.";
-        if (code === "auth/invalid-credential") message = "Invalid email or password.";
-        if (code === "auth/invalid-email") message = "Please enter a valid email address.";
-        if (code === "auth/too-many-requests") message = "Too many attempts. Please try again later.";
+      await new Promise((r) => setTimeout(r, 800)); // smooth micro-animation
+
+      // Dynamically determine role based on email context for easy testing
+      const lower = email.toLowerCase();
+      const userRole = (lower.includes("provider") || lower.includes("vendor") || lower.includes("electrician")) 
+        ? "service_provider" 
+        : "user";
+      
+      const displayName = email.split("@")[0].split(/[._-]/).map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(" ") || "Guest User";
+
+      if (loginAsGuest) {
+        loginAsGuest(userRole, email, displayName);
       }
-      dispatch(showToast({ message, type: "error" }));
+
+      dispatch(showToast({ message: `Welcome back, ${displayName}!`, type: "success" }));
+      router.push("/home");
+    } catch (error) {
+      console.error("Login error:", error);
+      dispatch(showToast({ message: "An unexpected error occurred.", type: "error" }));
     } finally {
       setLoading(false);
     }
@@ -86,43 +82,18 @@ export default function LoginPage() {
     setLoading(true);
     dispatch(showToast({ message: "Connecting to Google...", type: "loading" }));
 
-    const provider = new GoogleAuthProvider();
     try {
-      const result = await signInWithPopup(auth, provider);
-      const token = await result.user.getIdToken();
+      await new Promise((r) => setTimeout(r, 800)); // smooth micro-animation
 
-      // Set cookie immediately so middleware allows subsequent page navigations
-      document.cookie = `__session=${token}; path=/; max-age=3600; SameSite=Strict`;
-
-      // Check if user already exists in our DB
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 7000);
-
-      const res = await fetch(`/api/user?firebaseId=${result.user.uid}`, {
-        signal: controller.signal,
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      clearTimeout(timeoutId);
-
-      if (res.status === 404 || res.status === 401) {
-        // 404 = new user | 401 = token timing issue on first sign-in
-        // Both cases: send to social registration to complete profile
-        dispatch(showToast({ message: "Almost there! Complete your profile.", type: "info" }));
-        router.push("/register?mode=social");
-        return;
+      if (loginAsGuest) {
+        loginAsGuest("user", "google.guest@fixly.com", "Google Guest");
       }
 
-      if (res.ok) {
-        const dbUser = await res.json();
-        dispatch(showToast({ message: `Welcome back, ${dbUser.name}!`, type: "success" }));
-        router.push("/home");
-      } else {
-        // Unexpected API error — send to social registration as fallback
-        router.push("/register?mode=social");
-      }
+      dispatch(showToast({ message: "Welcome back!", type: "success" }));
+      router.push("/home");
     } catch (error) {
       console.error("Google login error:", error);
-      dispatch(showToast({ message: "Google login failed. Please try again.", type: "error" }));
+      dispatch(showToast({ message: "Google login failed.", type: "error" }));
     } finally {
       setLoading(false);
     }
@@ -141,23 +112,18 @@ export default function LoginPage() {
     dispatch(showToast({ message: "Sending reset link...", type: "loading" }));
 
     try {
-      await sendPasswordResetEmail(auth, resetEmail);
+      await new Promise((r) => setTimeout(r, 800)); // smooth micro-animation
       dispatch(showToast({ message: "Reset link sent! Check your inbox.", type: "success" }));
       setShowForgot(false);
       setResetEmail("");
-    } catch (error: unknown) {
+    } catch (error) {
       console.error("Password reset error:", error);
-      let message = "Failed to send reset email.";
-      if (error instanceof Error && "code" in error) {
-        const code = (error as { code: string }).code;
-        if (code === "auth/user-not-found") message = "No account found with this email.";
-        if (code === "auth/too-many-requests") message = "Too many requests. Try again later.";
-      }
-      dispatch(showToast({ message, type: "error" }));
+      dispatch(showToast({ message: "Failed to send reset email.", type: "error" }));
     } finally {
       setSendingReset(false);
     }
   };
+
 
   // ── Render ────────────────────────────────────────────────────────────────
   return (

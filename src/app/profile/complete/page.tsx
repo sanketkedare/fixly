@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
-import { auth } from "@/lib/firebase";
 import { HiOutlineSparkles, HiOutlineBriefcase, HiOutlineLocationMarker, HiOutlineClipboardCheck } from "react-icons/hi";
 import { useAppDispatch } from "@/store/hooks";
 import { showToast } from "@/store/slices/uiSlice";
@@ -37,42 +36,27 @@ export default function ProfileCompletePage() {
       return;
     }
 
-    if (!auth.currentUser) {
-      dispatch(showToast({ message: "Session expired. Please log in again.", type: "error" }));
-      router.push("/login");
-      return;
-    }
-
     setSubmitting(true);
     dispatch(showToast({ message: "Completing your profile...", type: "loading" }));
 
     try {
-      const token = await auth.currentUser.getIdToken();
+      await new Promise((r) => setTimeout(r, 800)); // smooth micro-animation
 
-      // ✅ Correct: POST to /api/user/complete-profile (not PUT /api/user)
-      const res = await fetch("/api/user/complete-profile", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          firebaseId: user?.uid,
+      // Directly update stored mock user in localStorage
+      if (user) {
+        const updatedUser = {
+          ...user,
           bio,
           category,
           address,
-        }),
-      });
-
-      if (res.ok) {
-        // Refresh AuthContext so isProfileComplete updates
+          isProfileComplete: true,
+        };
+        localStorage.setItem("fixly_mock_user", JSON.stringify(updatedUser));
         await refreshUser();
-        dispatch(showToast({ message: "Profile completed! Welcome to Fixly 🎉", type: "success" }));
-        router.push("/home");
-      } else {
-        const data = await res.json();
-        throw new Error(data.error ?? "Failed to update profile");
       }
+
+      dispatch(showToast({ message: "Profile completed! Welcome to Fixly 🎉", type: "success" }));
+      router.push("/home");
     } catch (error) {
       console.error("Profile complete error:", error);
       dispatch(showToast({ message: "Error updating profile. Please try again.", type: "error" }));
